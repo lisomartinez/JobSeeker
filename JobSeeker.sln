@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobSeeker.Domain", "JobSeeker.Domain\JobSeeker.Domain.csproj", "{AC85A70D-A875-4897-9489-EFBD7053171A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobSeeker.Test", "JobSeeker.Test\JobSeeker.Test.csproj", "{C6C82FC1-D221-4AFC-9E7F-4C41EA2691C0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AC85A70D-A875-4897-9489-EFBD7053171A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC85A70D-A875-4897-9489-EFBD7053171A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC85A70D-A875-4897-9489-EFBD7053171A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC85A70D-A875-4897-9489-EFBD7053171A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6C82FC1-D221-4AFC-9E7F-4C41EA2691C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6C82FC1-D221-4AFC-9E7F-4C41EA2691C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6C82FC1-D221-4AFC-9E7F-4C41EA2691C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6C82FC1-D221-4AFC-9E7F-4C41EA2691C0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
