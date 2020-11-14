@@ -1,8 +1,8 @@
 using System;
 
-namespace JobSeeker.Test
+namespace JobSeeker.Domain
 {
-    internal class CandidateException : Exception
+    public class CandidateException : Exception
     {
         public override string Message { get; }
 

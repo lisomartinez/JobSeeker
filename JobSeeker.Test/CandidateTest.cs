@@ -1,5 +1,6 @@
 using System;
 using FluentAssertions;
+using JobSeeker.Domain;
 using Xunit;
 
 namespace JobSeeker.Test
@@ -97,7 +98,7 @@ namespace JobSeeker.Test
                 .WithMessage(Candidate.CannotAddACommentToNonExistingJob);
             candidate.ApplicationHasComment(Position, Company, "A comment").Should().BeFalse();
         }
-        
+
         [Fact]
         private void CannnotCommentOnNotAppliedJobPosition()
         {

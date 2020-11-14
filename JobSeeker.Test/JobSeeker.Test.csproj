@@ -22,4 +22,8 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\JobSeeker.Domain\JobSeeker.Domain.csproj" />
+    </ItemGroup>
+
 </Project>
