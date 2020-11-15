@@ -61,5 +61,10 @@ namespace JobSeeker.Domain
             var foundUser = _passwordsByUser.TryGetValue(username, out var userPassword);
             return foundUser && password == userPassword;
         }
+
+        public void ApplyToJob(string johnDoeUserName, string position, string accenture, string description)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

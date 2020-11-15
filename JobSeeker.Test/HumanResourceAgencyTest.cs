@@ -95,5 +95,14 @@ namespace JobSeeker.Test
                 .Throw<HumanResourcesAgencyException>()
                 .WithMessage(HumanResourcesAgency.CannotLoginUserNotRegistered);
         }
+
+        [Fact]
+        private void KnowsApplicationOfEachCandidate()
+        {
+            HumanResourcesAgency agency = new HumanResourcesAgency();
+            agency.Register(JohnDoeUserName, JohnDoePassword,
+                JohnDoeEmail, JohnDoe);
+            // agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
+        }
     }
 }
