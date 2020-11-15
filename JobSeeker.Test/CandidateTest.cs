@@ -55,7 +55,15 @@ namespace JobSeeker.Test
             candidate.NumberOfApplications().Should().Be(1);
         }
 
-
+        [Fact]
+        private void KnowsJobsApplied()
+        {
+            Candidate candidate = Candidate.Named(JohnDoe);
+            candidate.HasAppliedToJobs().Should().BeFalse();
+            candidate.HasAppliedToJob(Position, Company).Should().BeFalse();
+        }
+        
+        
         [Fact]
         private void CannotApplyToJobMoreThanOnce()
         {

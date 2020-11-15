@@ -20,11 +20,11 @@ namespace JobSeeker.Domain
 
         public static Candidate Named(string name)
         {
-            AssureNameIsNotBlank(name);
+            AssertNameIsNotBlank(name);
             return new Candidate(name);
         }
 
-        private static void AssureNameIsNotBlank(string name)
+        private static void AssertNameIsNotBlank(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -65,21 +65,18 @@ namespace JobSeeker.Domain
 
         public bool HasAppliedToJob(string position, string company)
         {
-            return GetApplication(position, company) != null;
+            var doesCompanyExists = positionByCompany.TryGetValue(company, out var positions);
+            return doesCompanyExists && ApplicationsForCompanyContainsPosition(position, positions!);
         }
 
-        private static bool HasAppliedToPosition(string applicationPosition, IEnumerable<Application> positions)
+        private static bool ApplicationsForCompanyContainsPosition(string position, HashSet<Application> positions)
         {
-            return positions
-                .Count(app => app.HasPosition(applicationPosition)) != 0;
+            return positions!.Count(application => application.HasPosition(position)) != 0;
         }
-
+        
         private void AssertHasNotAlreadyAppliedTo(string position, string company)
         {
-            if (!positionByCompany.ContainsKey(company)) return;
-
-            var existingPosition = GetApplication(position, company) != null;
-            if (existingPosition)
+            if (HasAppliedToJob(position, company))
             {
                 throw new CandidateException(CannotApplyToAnAlreadyAppliedJob);
             }
@@ -92,38 +89,26 @@ namespace JobSeeker.Domain
 
         public void CommentApplication(string position, string company, string comment)
         {
-            AssertCompanyExists(company);
-            var application = GetApplication(position, company);
-            AssertHasAppliedToJob(application);
-            application!.AddComment(comment, DateTime.Today);
+            AssertHasAppliedToJob(position, company);
+            GetApplication(position, company).AddComment(comment, DateTime.Today);
         }
 
-        private void AssertCompanyExists(string company)
+        private void AssertHasAppliedToJob(string position, string company)
         {
-            if (!positionByCompany.ContainsKey(company))
+            if (!HasAppliedToJob(position, company))
             {
                 throw new CandidateException(CannotAddACommentToNonExistingJob);
             }
         }
 
-        private void AssertHasAppliedToJob(Application? application)
+        private Application GetApplication(string position, string company)
         {
-            if (application == null)
-            {
-                throw new CandidateException(CannotAddACommentToNonExistingJob);
-            }
-        }
-
-        private Application? GetApplication(string position, string company)
-        {
-            return positionByCompany[company].FirstOrDefault(pos => pos.HasPosition(position));
+            return positionByCompany[company].First(pos => pos.HasPosition(position));
         }
 
         public bool ApplicationHasComment(string position, string company, string aComment)
         {
-            if (!positionByCompany.ContainsKey(company)) return false;
-            var application = GetApplication(position, company);
-            return application != null && application.HasComment(aComment);
+            return HasAppliedToJob(position, company) && GetApplication(position, company).HasComment(aComment);
         }
     }
 }
