@@ -23,20 +23,17 @@ namespace JobSeeker.Domain
 
         private Application(ApplicationBuilder builder)
         {
-
             _position = builder.Position;
             Company = builder.Company;
             _date = builder.Date;
             _description = builder.Description;
             _commentsByDay = new SortedDictionary<DateTime, List<string>>();
         }
-        
+
         public static ApplicationBuilder Builder()
         {
             return new ApplicationBuilder();
         }
-
-
 
         public bool HasComments()
         {
@@ -162,7 +159,7 @@ namespace JobSeeker.Domain
                 AssertCompanyIsNotBlank(Company);
                 return new Application(this);
             }
-            
+
             private static void AssertCompanyIsNotBlank(string company)
             {
                 if (string.IsNullOrWhiteSpace(company))
