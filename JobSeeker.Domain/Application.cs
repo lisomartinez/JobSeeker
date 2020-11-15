@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace JobSeeker.Domain
 {
-    public  class Application : IEquatable<Application>
+    public class Application : IEquatable<Application>
     {
         public const string CanNotAddACommentBeforeApplication = "Can not add a comment before application";
 
@@ -20,39 +21,22 @@ namespace JobSeeker.Domain
         private readonly string _description;
         private readonly SortedDictionary<DateTime, List<string>> _commentsByDay;
 
-
-        private Application(string position, string company, in DateTime date, string description)
+        private Application(ApplicationBuilder builder)
         {
-            _position = position;
-            Company = company;
-            _date = date;
-            _description = description;
+
+            _position = builder.Position;
+            Company = builder.Company;
+            _date = builder.Date;
+            _description = builder.Description;
             _commentsByDay = new SortedDictionary<DateTime, List<string>>();
         }
-
-        public static Application Of(string position, string company, DateTime date, string description = "")
+        
+        public static ApplicationBuilder Builder()
         {
-            AssertPositionIsNotBlank(position);
-            AssertCompanyIsNotBlank(company);
-
-            return new Application(position, company, date, description);
+            return new ApplicationBuilder();
         }
 
-        private static void AssertCompanyIsNotBlank(string company)
-        {
-            if (string.IsNullOrWhiteSpace(company))
-            {
-                throw new JobApplicationException(CompanyCannotBeBlank);
-            }
-        }
 
-        private static void AssertPositionIsNotBlank(string position)
-        {
-            if (string.IsNullOrWhiteSpace(position))
-            {
-                throw new JobApplicationException(PositionCannotBeBlank);
-            }
-        }
 
         public bool HasComments()
         {
@@ -135,6 +119,65 @@ namespace JobSeeker.Domain
         public bool HasComment(string aComment)
         {
             return _commentsByDay.Values.Count(list => list.Contains(aComment)) != 0;
+        }
+
+        public class ApplicationBuilder
+        {
+            public string Position { get; private set; } = "";
+            public string Company { get; private set; } = "";
+            public DateTime Date { get; private set; } = DateTime.Today;
+            public string Description { get; private set; } = "";
+
+            public ApplicationBuilder()
+            {
+            }
+
+            public ApplicationBuilder WithPosition(string position)
+            {
+                Position = position;
+                return this;
+            }
+
+            public ApplicationBuilder WithCompany(string company)
+            {
+                Company = company;
+                return this;
+            }
+
+            public ApplicationBuilder WithDate(DateTime date)
+            {
+                Date = date;
+                return this;
+            }
+
+            public ApplicationBuilder WithDescription(string description)
+            {
+                Description = description;
+                return this;
+            }
+
+            public Application Build()
+            {
+                AssertPositionIsNotBlank(Position);
+                AssertCompanyIsNotBlank(Company);
+                return new Application(this);
+            }
+            
+            private static void AssertCompanyIsNotBlank(string company)
+            {
+                if (string.IsNullOrWhiteSpace(company))
+                {
+                    throw new JobApplicationException(CompanyCannotBeBlank);
+                }
+            }
+
+            private static void AssertPositionIsNotBlank(string position)
+            {
+                if (string.IsNullOrWhiteSpace(position))
+                {
+                    throw new JobApplicationException(PositionCannotBeBlank);
+                }
+            }
         }
     }
 }

@@ -51,7 +51,12 @@ namespace JobSeeker.Domain
         private void AddPositionToCompany(string position, string company, string description)
         {
             var positions = _positionByCompany.GetValueOrDefault(company, new HashSet<Application>());
-            var application = Application.Of(position, company, DateTime.Today, description);
+            var application = Application.Builder()
+                .WithPosition(position)
+                .WithCompany(company)
+                .WithDate(DateTime.Today)
+                .WithDescription(description)
+                .Build();
             positions.Add(application);
             _positionByCompany[application.Company] = positions;
         }

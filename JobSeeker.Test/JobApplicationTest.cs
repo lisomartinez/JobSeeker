@@ -74,8 +74,12 @@ namespace JobSeeker.Test
         [Fact]
         private void PositionCannotBeBlank()
         {
-            Action act = () => Application.Of(BlankString, Company,
-                Date, ADescription);
+            Action act = () => Application.Builder()
+                .WithPosition(BlankString)
+                .WithCompany(Company)
+                .WithDate(Date)
+                .WithDescription(ADescription)
+                .Build();
             act
                 .Should()
                 .Throw<JobApplicationException>()
@@ -85,8 +89,13 @@ namespace JobSeeker.Test
         [Fact]
         private void CompanyCannotBeBlank()
         {
-            Action act = () => Application.Of(Position, BlankString,
-                Date, ADescription);
+            Action act = () =>
+                Application.Builder()
+                    .WithPosition(Position)
+                    .WithCompany(BlankString)
+                    .WithDate(Date)
+                    .WithDescription(ADescription)
+                    .Build();
             act
                 .Should()
                 .Throw<JobApplicationException>()
@@ -98,8 +107,13 @@ namespace JobSeeker.Test
         {
             Application firstApplication = CreateJavaAtAccentureApplication();
             Application secondApplication =
-                Application.Of(Position.ToLower(), Company.ToLower(),
-                    Date.AddDays(1), ADescription);
+                Application.Builder()
+                    .WithPosition(Position.ToLower())
+                    .WithCompany(Company.ToLower())
+                    .WithDate(Date.AddDays(1))
+                    .WithDescription(ADescription)
+                    .Build();
+
             firstApplication.Equals(secondApplication).Should().BeTrue();
         }
     }
