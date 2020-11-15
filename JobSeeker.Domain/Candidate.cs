@@ -6,24 +6,24 @@ namespace JobSeeker.Domain
 {
     public class Candidate
     {
-        private readonly string _name;
-        private readonly Dictionary<string, HashSet<Application>> positionByCompany;
+        private readonly Dictionary<string, HashSet<Application>> _positionByCompany;
+        private readonly User _user;
         public const string CandidateNameCannotBeBlank = "Candidate name cannot be blank";
         public const string CannotApplyToAnAlreadyAppliedJob = "Cannot apply to an already applied job";
         public const string CannotAddACommentToNonExistingJob = "Cannot add a comment to non existing job";
 
-        private Candidate(string name)
+        public static Candidate With(User user)
         {
-            _name = name;
-            positionByCompany = new Dictionary<string, HashSet<Application>>();
+            return new Candidate(user);
         }
 
-        public static Candidate Named(string name)
+        private Candidate(User user)
         {
-            AssertNameIsNotBlank(name);
-            return new Candidate(name);
+            _user = user;
+            _positionByCompany = new Dictionary<string, HashSet<Application>>();
         }
 
+    
         private static void AssertNameIsNotBlank(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -34,12 +34,12 @@ namespace JobSeeker.Domain
 
         public bool IsNamed(string aName)
         {
-            return _name == aName;
+            return _user.IsNamed(aName);
         }
 
         public bool HasAppliedToJobs()
         {
-            return positionByCompany.Count != 0;
+            return _positionByCompany.Count != 0;
         }
 
         public void ApplyToJob(string position, string company, string description)
@@ -50,22 +50,15 @@ namespace JobSeeker.Domain
 
         private void AddPositionToCompany(string position, string company, string description)
         {
+            var positions = _positionByCompany.GetValueOrDefault(company, new HashSet<Application>());
             var application = Application.Of(position, company, DateTime.Today, description);
-
-            var hasAppliedToCompany = positionByCompany.ContainsKey(application.Company);
-            if (hasAppliedToCompany)
-            {
-                positionByCompany[application.Company].Add(application);
-            }
-            else
-            {
-                positionByCompany[application.Company] = new HashSet<Application> {application};
-            }
+            positions.Add(application);
+            _positionByCompany[application.Company] = positions;
         }
 
         public bool HasAppliedToJob(string position, string company)
         {
-            var doesCompanyExists = positionByCompany.TryGetValue(company, out var positions);
+            var doesCompanyExists = _positionByCompany.TryGetValue(company, out var positions);
             return doesCompanyExists && ApplicationsForCompanyContainsPosition(position, positions!);
         }
 
@@ -73,7 +66,7 @@ namespace JobSeeker.Domain
         {
             return positions!.Count(application => application.HasPosition(position)) != 0;
         }
-        
+
         private void AssertHasNotAlreadyAppliedTo(string position, string company)
         {
             if (HasAppliedToJob(position, company))
@@ -84,7 +77,7 @@ namespace JobSeeker.Domain
 
         public int NumberOfApplications()
         {
-            return positionByCompany.Values.Sum(set => set.Count);
+            return _positionByCompany.Values.Sum(set => set.Count);
         }
 
         public void CommentApplication(string position, string company, string comment)
@@ -103,7 +96,7 @@ namespace JobSeeker.Domain
 
         private Application GetApplication(string position, string company)
         {
-            return positionByCompany[company].First(pos => pos.HasPosition(position));
+            return _positionByCompany[company].First(pos => pos.HasPosition(position));
         }
 
         public bool ApplicationHasComment(string position, string company, string aComment)

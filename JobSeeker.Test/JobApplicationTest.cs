@@ -2,28 +2,23 @@ using System;
 using FluentAssertions;
 using JobSeeker.Domain;
 using Xunit;
+using static JobSeeker.Test.TestObjectFactory;
 
 namespace JobSeeker.Test
 {
     public sealed class JobApplicationTest
     {
-        private static readonly DateTime Date = new DateTime(2010, 10, 1);
-        private const string Position = "Java";
-        private const string Company = "Accenture";
-        private const string ADescription = "a description";
-        private const string BlankString = " ";
-
         [Fact]
         private void WhenCreatedDoesNotHaveComments()
         {
-            Application application = Application.Of(Position, Company, Date, ADescription);
+            Application application = CreateJavaAtAccentureApplication();
             application.HasComments().Should().BeFalse();
         }
 
         [Fact]
         private void CanAddComments()
         {
-            Application application = Application.Of(Position, Company, Date, ADescription);
+            Application application = CreateJavaAtAccentureApplication();
             application.AddComment("a comment", new DateTime(2010, 10, 2));
             application.HasComments().Should().BeTrue();
             application.NumberOfComments().Should().Be(1);
@@ -32,7 +27,7 @@ namespace JobSeeker.Test
         [Fact]
         private void CannotAddCommentBeforeApplicationDate()
         {
-            Application application = Application.Of(Position, Company, Date, ADescription);
+            Application application = CreateJavaAtAccentureApplication();
             application
                 .Invoking(app => app.AddComment("a comment", new DateTime(2010, 9, 30)))
                 .Should().Throw<JobApplicationException>()
@@ -44,7 +39,7 @@ namespace JobSeeker.Test
         [Fact]
         private void CanAddMultipleComments()
         {
-            Application application = Application.Of(Position, Company, Date, ADescription);
+            Application application = CreateJavaAtAccentureApplication();
             application.AddComment("a comment", new DateTime(2010, 10, 2));
             application.AddComment("other comment", new DateTime(2010, 10, 3));
             application.HasComments().Should().BeTrue();
@@ -54,7 +49,7 @@ namespace JobSeeker.Test
         [Fact]
         private void CanAddMultipleCommentsSameDay()
         {
-            Application application = Application.Of(Position, Company, Date, ADescription);
+            Application application = CreateJavaAtAccentureApplication();
             application.AddComment("a comment", new DateTime(2010, 10, 2));
             application.AddComment("other comment", new DateTime(2010, 10, 2));
             application.HasComments().Should().BeTrue();
@@ -64,7 +59,7 @@ namespace JobSeeker.Test
         [Fact]
         private void CannotAddCommentBeforeTheExistinsLastOne()
         {
-            Application application = Application.Of(Position, Company, Date, ADescription);
+            Application application = CreateJavaAtAccentureApplication();
             application.AddComment("a comment", new DateTime(2010, 10, 2));
 
             application.Invoking(app => app.AddComment("other comment", Date))
@@ -79,7 +74,8 @@ namespace JobSeeker.Test
         [Fact]
         private void PositionCannotBeBlank()
         {
-            Action act = () => Application.Of(BlankString, Company, Date, ADescription);
+            Action act = () => Application.Of(BlankString, Company,
+                Date, ADescription);
             act
                 .Should()
                 .Throw<JobApplicationException>()
@@ -89,7 +85,8 @@ namespace JobSeeker.Test
         [Fact]
         private void CompanyCannotBeBlank()
         {
-            Action act = () => Application.Of(Position, BlankString, Date, ADescription);
+            Action act = () => Application.Of(Position, BlankString,
+                Date, ADescription);
             act
                 .Should()
                 .Throw<JobApplicationException>()
@@ -99,9 +96,10 @@ namespace JobSeeker.Test
         [Fact]
         private void EqualsComparesPositionCompanyCaseInsensitive()
         {
-            Application firstApplication = Application.Of(Position, Company, Date, ADescription);
+            Application firstApplication = CreateJavaAtAccentureApplication();
             Application secondApplication =
-                Application.Of(Position.ToLower(), Company.ToLower(), Date.AddDays(1), ADescription);
+                Application.Of(Position.ToLower(), Company.ToLower(),
+                    Date.AddDays(1), ADescription);
             firstApplication.Equals(secondApplication).Should().BeTrue();
         }
     }
