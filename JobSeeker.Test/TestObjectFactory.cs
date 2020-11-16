@@ -12,6 +12,7 @@ namespace JobSeeker.Test
         public const string JohnDoeEmail = "jdoe@gmail.com";
         public const string Position = "Java";
         public const string Company = "Accenture";
+        public const string OtherCompany = "Globant";
         public const string Description = "Description";
         public const string OtherPosition = ".Net";
         public static readonly DateTime Date = new DateTime(2010, 10, 1);
@@ -38,6 +39,16 @@ namespace JobSeeker.Test
             return Application.Builder()
                 .WithPosition(TestObjectFactory.Position)
                 .WithCompany(TestObjectFactory.Company)
+                .WithDate(TestObjectFactory.Date)
+                .WithDescription(TestObjectFactory.Description)
+                .Build();
+        }
+        
+        public static Application CreateJavaAtGlobantApplication()
+        {
+            return Application.Builder()
+                .WithPosition(TestObjectFactory.Position)
+                .WithCompany(TestObjectFactory.OtherCompany)
                 .WithDate(TestObjectFactory.Date)
                 .WithDescription(TestObjectFactory.Description)
                 .Build();

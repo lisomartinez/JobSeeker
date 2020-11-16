@@ -1,16 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MoreLinq;
 
 namespace JobSeeker.Domain
 {
     public class Candidate
     {
-        private readonly Dictionary<string, HashSet<Application>> _positionByCompany;
-        private readonly User _user;
-        public const string CandidateNameCannotBeBlank = "Candidate name cannot be blank";
         public const string CannotApplyToAnAlreadyAppliedJob = "Cannot apply to an already applied job";
         public const string CannotAddACommentToNonExistingJob = "Cannot add a comment to non existing job";
+        private readonly Dictionary<string, HashSet<Application>> _positionByCompany;
+        private readonly User _user;
+
+        public List<Application> Applications => _positionByCompany
+            .Values
+            .SelectMany(set => set.AsEnumerable())
+            .ToList();
+
 
         public static Candidate With(User user)
         {
@@ -21,20 +27,6 @@ namespace JobSeeker.Domain
         {
             _user = user;
             _positionByCompany = new Dictionary<string, HashSet<Application>>();
-        }
-
-    
-        private static void AssertNameIsNotBlank(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new CandidateException(CandidateNameCannotBeBlank);
-            }
-        }
-
-        public bool IsNamed(string aName)
-        {
-            return _user.IsNamed(aName);
         }
 
         public bool HasAppliedToJobs()

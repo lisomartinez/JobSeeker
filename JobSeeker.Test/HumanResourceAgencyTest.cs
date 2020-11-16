@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using JobSeeker.Domain;
 using Xunit;
@@ -102,7 +103,76 @@ namespace JobSeeker.Test
             HumanResourcesAgency agency = new HumanResourcesAgency();
             agency.Register(JohnDoeUserName, JohnDoePassword,
                 JohnDoeEmail, JohnDoe);
-            // agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
+            agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
+            agency.CandidateHasAppliedTo(JohnDoeUserName, Position, Company).Should().BeTrue();
+            agency.NumberOfUserApplications(JohnDoeUserName).Should().Be(1);
+        }
+
+        [Fact]
+        private void NoRegisteredUserCannotApplyToJobs()
+        {
+            HumanResourcesAgency agency = new HumanResourcesAgency();
+
+            agency.Invoking(a => a.ApplyToJob(JohnDoeUserName, Position, Company, Description))
+                .Should()
+                .Throw<HumanResourcesAgencyException>()
+                .WithMessage(HumanResourcesAgency.NotRegisteredUserCannotOperate);
+
+            agency.CandidateHasAppliedTo(JohnDoeUserName, Position, Company).Should().BeFalse();
+            agency.NumberOfUserApplications(JohnDoeUserName).Should().Be(0);
+        }
+
+        [Fact]
+        private void CandidateCanApplyToMoreThanOneJobInSameCompany()
+        {
+            HumanResourcesAgency agency = new HumanResourcesAgency();
+            agency.Register(JohnDoeUserName, JohnDoePassword,
+                JohnDoeEmail, JohnDoe);
+            agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
+            agency.ApplyToJob(JohnDoeUserName, OtherPosition, Company, Description);
+            agency.CandidateHasAppliedTo(JohnDoeUserName, Position, Company).Should().BeTrue();
+            agency.CandidateHasAppliedTo(JohnDoeUserName, OtherPosition, Company).Should().BeTrue();
+            agency.NumberOfUserApplications(JohnDoeUserName).Should().Be(2);
+        }
+
+        [Fact]
+        private void CandidateCanApplyToJobsInDifferentCompanies()
+        {
+            HumanResourcesAgency agency = new HumanResourcesAgency();
+            agency.Register(JohnDoeUserName, JohnDoePassword,
+                JohnDoeEmail, JohnDoe);
+            agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
+            agency.ApplyToJob(JohnDoeUserName, Position, OtherCompany, Description);
+            agency.CandidateHasAppliedTo(JohnDoeUserName, Position, Company).Should().BeTrue();
+            agency.CandidateHasAppliedTo(JohnDoeUserName, Position, OtherCompany).Should().BeTrue();
+            agency.NumberOfUserApplications(JohnDoeUserName).Should().Be(2);
+        }
+
+        [Fact]
+        private void CanGetCollectionOfRegisteredCandidatesApplications()
+        {
+            HumanResourcesAgency agency = new HumanResourcesAgency();
+            Application first = CreateJavaAtAccentureApplication();
+            Application second = CreateJavaAtGlobantApplication();
+            
+            agency.Register(JohnDoeUserName, JohnDoePassword,
+                JohnDoeEmail, JohnDoe);
+            agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
+            agency.ApplyToJob(JohnDoeUserName, Position, OtherCompany, Description);
+            
+            List<Application> applications = agency.ApplicationsOf(JohnDoeUserName);
+            applications.Count.Should().Be(2);
+            applications.Should().ContainInOrder(first, second);
+        }
+
+        [Fact]
+        private void CannotGetApplicationsOfNotRegisteredCandidates()
+        {
+            HumanResourcesAgency agency = new HumanResourcesAgency();
+            agency.Invoking(a => a.ApplicationsOf(JohnDoeUserName))
+                .Should()
+                .Throw<HumanResourcesAgencyException>()
+                .WithMessage(HumanResourcesAgency.NotRegisteredUserCannotOperate);
         }
     }
 }

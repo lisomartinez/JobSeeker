@@ -6,8 +6,9 @@ namespace JobSeeker.Domain
 {
     public class HumanResourcesAgency
     {
-        private HashSet<User> _users = new HashSet<User>();
-        private Dictionary<string, string> _passwordsByUser = new Dictionary<string, string>();
+        private Dictionary<User, Candidate> _users = new();
+        private Dictionary<string, string> _passwordsByUser = new();
+        public const string NotRegisteredUserCannotOperate = "Not registered user cannot operate";
         public const string CannotLoginUserNotRegistered = "Cannot login not registered user";
         public const string CannotRegisterUserMoreThanOnce = "Cannot register a user more than once";
 
@@ -16,7 +17,7 @@ namespace JobSeeker.Domain
         {
             AsssertUserIsNotAlreadyRegistered(username);
             var user = User.Named(username, name, email);
-            _users.Add(user);
+            _users.Add(user, Candidate.With(user));
             _passwordsByUser.Add(username, password);
         }
 
@@ -35,7 +36,7 @@ namespace JobSeeker.Domain
 
         public bool HasRegisteredUser(string username)
         {
-            return _users.FirstOrDefault(user => user.HasUserName(username)) != null;
+            return _users.Keys.FirstOrDefault(user => user.HasUserName(username)) != null;
         }
 
 
@@ -49,11 +50,22 @@ namespace JobSeeker.Domain
             if (!IsAuthenticated(username, password))
             {
                 onFailure();
-                return;
             }
+            else
+            {
+                var user = UserFrom(username);
+                onAuthenticaded(user);    
+            }
+        }
 
-            var user = _users.First(usr => usr.HasUserName(username));
-            onAuthenticaded(user);
+        private User UserFrom(string username)
+        {
+            return FindUser(username).Key;
+        }
+
+        private KeyValuePair<User, Candidate> FindUser(string username)
+        {
+            return _users.First(usr => usr.Key.HasUserName(username));
         }
 
         private bool IsAuthenticated(string username, string password)
@@ -62,9 +74,40 @@ namespace JobSeeker.Domain
             return foundUser && password == userPassword;
         }
 
-        public void ApplyToJob(string johnDoeUserName, string position, string accenture, string description)
+        public void ApplyToJob(string username, string position, string company, string description)
         {
-            throw new NotImplementedException();
+            AssertUserIsRegistered(username);
+            var candidate = CandidateFrom(username);
+            candidate.ApplyToJob(position, company, description);
+        }
+
+        private void AssertUserIsRegistered(string username)
+        {
+            if (!HasRegisteredUser(username))
+            {
+                throw new HumanResourcesAgencyException(NotRegisteredUserCannotOperate);
+            }
+        }
+
+        private Candidate CandidateFrom(string username)
+        {
+            return FindUser(username).Value;
+        }
+
+        public bool CandidateHasAppliedTo(string username, string position, string company)
+        {
+            return HasRegisteredUser(username) && CandidateFrom(username).HasAppliedToJob(position, company);
+        }
+
+        public int NumberOfUserApplications(string username)
+        {
+            return HasRegisteredUser(username) ? CandidateFrom(username).NumberOfApplications() : 0;
+        }
+
+        public List<Application> ApplicationsOf(string username)
+        {
+            AssertUserIsRegistered(username);
+            return CandidateFrom(username).Applications;
         }
     }
 }
