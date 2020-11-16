@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MoreLinq;
 
 namespace JobSeeker.Domain
 {
@@ -12,21 +11,16 @@ namespace JobSeeker.Domain
         private readonly Dictionary<string, HashSet<Application>> _positionByCompany;
         private readonly User _user;
 
-        public List<Application> Applications => _positionByCompany
-            .Values
-            .SelectMany(set => set.AsEnumerable())
-            .ToList();
+        private Candidate(User user)
+        {
+            _user = user;
+            _positionByCompany = new Dictionary<string, HashSet<Application>>();
+        }
 
 
         public static Candidate With(User user)
         {
             return new Candidate(user);
-        }
-
-        private Candidate(User user)
-        {
-            _user = user;
-            _positionByCompany = new Dictionary<string, HashSet<Application>>();
         }
 
         public bool HasAppliedToJobs()
@@ -61,7 +55,7 @@ namespace JobSeeker.Domain
 
         private static bool ApplicationsForCompanyContainsPosition(string position, HashSet<Application> positions)
         {
-            return positions!.Count(application => application.HasPosition(position)) != 0;
+            return (positions!).Any(application => application.HasPosition(position));
         }
 
         private void AssertHasNotAlreadyAppliedTo(string position, string company)
@@ -100,5 +94,10 @@ namespace JobSeeker.Domain
         {
             return HasAppliedToJob(position, company) && GetApplication(position, company).HasComment(aComment);
         }
+
+        public List<Application> Applications() => _positionByCompany
+            .Values
+            .SelectMany(set => set.AsEnumerable())
+            .ToList();
     }
 }

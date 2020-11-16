@@ -6,11 +6,11 @@ namespace JobSeeker.Domain
 {
     public class HumanResourcesAgency
     {
-        private Dictionary<User, Candidate> _users = new();
-        private Dictionary<string, string> _passwordsByUser = new();
         public const string NotRegisteredUserCannotOperate = "Not registered user cannot operate";
         public const string CannotLoginUserNotRegistered = "Cannot login not registered user";
         public const string CannotRegisterUserMoreThanOnce = "Cannot register a user more than once";
+        private readonly Dictionary<string, string> _passwordsByUser = new();
+        private readonly Dictionary<User, Candidate> _users = new();
 
 
         public void Register(string username, string password, string email, string name)
@@ -54,7 +54,7 @@ namespace JobSeeker.Domain
             else
             {
                 var user = UserFrom(username);
-                onAuthenticaded(user);    
+                onAuthenticaded(user);
             }
         }
 
@@ -107,7 +107,7 @@ namespace JobSeeker.Domain
         public List<Application> ApplicationsOf(string username)
         {
             AssertUserIsRegistered(username);
-            return CandidateFrom(username).Applications;
+            return CandidateFrom(username).Applications();
         }
     }
 }

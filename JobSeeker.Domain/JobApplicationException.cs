@@ -1,10 +1,20 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace JobSeeker.Domain
 {
+    [Serializable]
     public class JobApplicationException : Exception
     {
-        public JobApplicationException(string message) : base(message)
+        protected JobApplicationException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+
+        public JobApplicationException(string? message) : base(message)
+        {
+        }
+
+        public JobApplicationException(string? message, Exception? innerException) : base(message, innerException)
         {
         }
     }

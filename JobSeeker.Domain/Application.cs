@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace JobSeeker.Domain
 {
-    public class Application : IEquatable<Application>
+    public sealed class Application : IEquatable<Application>
     {
         public const string CanNotAddACommentBeforeApplication = "Can not add a comment before application";
 
@@ -14,12 +13,11 @@ namespace JobSeeker.Domain
 
         public const string PositionCannotBeBlank = "Position cannot be blank";
         public const string CompanyCannotBeBlank = "Company cannot be blank";
-
-        private readonly string _position;
-        public string Company { get; }
+        private readonly SortedDictionary<DateTime, List<string>> _commentsByDay;
         private readonly DateTime _date;
         private readonly string _description;
-        private readonly SortedDictionary<DateTime, List<string>> _commentsByDay;
+
+        private readonly string _position;
 
         private Application(ApplicationBuilder builder)
         {
@@ -28,6 +26,16 @@ namespace JobSeeker.Domain
             _date = builder.Date;
             _description = builder.Description;
             _commentsByDay = new SortedDictionary<DateTime, List<string>>();
+        }
+
+        public string Company { get; }
+
+        public bool Equals(Application? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return string.Equals(_position, other._position, StringComparison.InvariantCultureIgnoreCase) &&
+                   string.Equals(Company, other.Company, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static ApplicationBuilder Builder()
@@ -78,14 +86,6 @@ namespace JobSeeker.Domain
             return _commentsByDay.Values.Sum(comments => comments.Count);
         }
 
-        public bool Equals(Application? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return string.Equals(_position, other._position, StringComparison.InvariantCultureIgnoreCase) &&
-                   string.Equals(Company, other.Company, StringComparison.InvariantCultureIgnoreCase);
-        }
-
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
@@ -115,19 +115,19 @@ namespace JobSeeker.Domain
 
         public bool HasComment(string aComment)
         {
-            return _commentsByDay.Values.Count(list => list.Contains(aComment)) != 0;
+            return _commentsByDay.Values.Any(list => list.Contains(aComment));
         }
 
         public class ApplicationBuilder
         {
+            public ApplicationBuilder()
+            {
+            }
+
             public string Position { get; private set; } = "";
             public string Company { get; private set; } = "";
             public DateTime Date { get; private set; } = DateTime.Today;
             public string Description { get; private set; } = "";
-
-            public ApplicationBuilder()
-            {
-            }
 
             public ApplicationBuilder WithPosition(string position)
             {
