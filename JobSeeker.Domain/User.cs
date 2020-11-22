@@ -1,52 +1,45 @@
+using System;
+
 namespace JobSeeker.Domain
 {
     public class User
     {
         public const string CandidateUsernameCannotBeBlank = "Candidate username cannot be blank";
-        public const string CandidateNameCannotBeBlank = "Candidate name cannot be blank";
-        public const string CandidateEmailCannotBeBlank = "Candidate email cannot be blank";
+        public const string CannotHaveNotGuidUsernameFormat = "User should have Guid username";
 
-        private User(string username, string name, string email)
+
+        private User(string username)
         {
             Username = username;
-            Name = name;
-            Email = email;
-        }
-
-        public User(string username, string name, string email, string password)
-        {
-            Username = username;
-            Name = name;
-            Email = email;
-            Password = password;
         }
 
         public string Username { get; }
-        public string Name { get; }
-        public string Email { get; }
-        public string Password { get; } = "";
 
-        public static User Named(string username, string name, string email)
+
+        public static User Named(string username)
         {
-            AssertIsNotBlank(username, CandidateUsernameCannotBeBlank);
-            AssertIsNotBlank(email, CandidateEmailCannotBeBlank);
-            AssertIsNotBlank(name, CandidateNameCannotBeBlank);
-            return new User(username, name, email);
+            AssertIsNotBlank(username);
+            AssertUsernameHasGuidFormat(username);
+
+            return new User(username);
         }
 
-        private static void AssertIsNotBlank(string field, string exceptionMessage)
+        private static void AssertUsernameHasGuidFormat(string username)
         {
-            if (string.IsNullOrWhiteSpace(field))
+            if (!Guid.TryParse(username, out var _))
             {
-                throw new CandidateException(exceptionMessage);
+                throw new UserException(CannotHaveNotGuidUsernameFormat);
             }
         }
 
-
-        public bool IsNamed(string aName)
+        private static void AssertIsNotBlank(string field)
         {
-            return Name == aName;
+            if (string.IsNullOrWhiteSpace(field))
+            {
+                throw new UserException(CandidateUsernameCannotBeBlank);
+            }
         }
+
 
         public bool HasUserName(string aUserName)
         {

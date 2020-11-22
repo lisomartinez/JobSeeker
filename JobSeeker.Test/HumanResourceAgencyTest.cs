@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using JobSeeker.Domain;
@@ -9,100 +8,76 @@ namespace JobSeeker.Test
 {
     public class HumanResourceAgencyTest
     {
+        private readonly TransientCandidateFolder _candidateFolder;
+
+        public HumanResourceAgencyTest()
+        {
+            _candidateFolder = new TransientCandidateFolder();
+        }
+
         [Fact]
         private void WhenCreatedHaveNotRegisteredUser()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            agency.HasUsers().Should().BeFalse();
+            var agency = CreateHumanResourcesAgency();
+            _candidateFolder.HasUsers().Should().BeFalse();
+        }
+
+        private HumanResourcesAgency CreateHumanResourcesAgency()
+        {
+            return new(_candidateFolder);
         }
 
         [Fact]
         private void CanRegisterUsers()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
-            agency.HasUsers().Should().BeTrue();
-            agency.HasRegisteredUser(JohnDoeUserName).Should().BeTrue();
-            agency.NumberOfUsers().Should().Be(1);
+            var agency = CreateHumanResourcesAgency();
+            agency.Register(JohnDoeUserName);
+            _candidateFolder.HasUsers().Should().BeTrue();
+            _candidateFolder.HasRegisteredUser(JohnDoeUserName).Should().BeTrue();
+            _candidateFolder.NumberOfUsers().Should().Be(1);
         }
 
         [Fact]
         private void KnowItsRegisteredUsers()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
-            agency.HasUsers().Should().BeTrue();
-            agency.HasRegisteredUser(JaneDoeUserName).Should().BeFalse();
-            agency.NumberOfUsers().Should().Be(1);
+            var agency = CreateHumanResourcesAgency();
+            agency.Register(JohnDoeUserName);
+            _candidateFolder.HasUsers().Should().BeTrue();
+            _candidateFolder.HasRegisteredUser(JaneDoeUserName).Should().BeFalse();
+            _candidateFolder.NumberOfUsers().Should().Be(1);
         }
 
         [Fact]
         private void CanRegisterMultipleUsers()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
-            agency.Register("otherusername", JohnDoePassword, JohnDoeEmail,
-                JohnDoe);
-            agency.HasUsers().Should().BeTrue();
-            agency.HasRegisteredUser(JohnDoeUserName).Should().BeTrue();
-            agency.HasRegisteredUser("otherusername").Should().BeTrue();
-            agency.NumberOfUsers().Should().Be(2);
+            var agency = CreateHumanResourcesAgency();
+            agency.Register(JohnDoeUserName);
+            agency.Register(JaneDoeUserName);
+            _candidateFolder.HasUsers().Should().BeTrue();
+            _candidateFolder.HasRegisteredUser(JohnDoeUserName).Should().BeTrue();
+            _candidateFolder.HasRegisteredUser(JaneDoeUserName).Should().BeTrue();
+            _candidateFolder.NumberOfUsers().Should().Be(2);
         }
 
         [Fact]
         private void CannotRegisterUserTwice()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
-            agency.Invoking(a => agency.Register(JohnDoeUserName, JohnDoePassword,
-                    JohnDoeEmail, JohnDoe))
+            var agency = CreateHumanResourcesAgency();
+
+            agency.Register(JohnDoeUserName);
+            agency.Invoking(a => agency.Register(JohnDoeUserName))
                 .Should()
                 .Throw<HumanResourcesAgencyException>()
                 .WithMessage(HumanResourcesAgency.CannotRegisterUserMoreThanOnce);
-            agency.HasRegisteredUser(JohnDoeUserName).Should().BeTrue();
-            agency.NumberOfUsers().Should().Be(1);
-        }
-
-        [Fact]
-        private void CanLoginRegisteredUser()
-        {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            User johnDoe = CreateJohnDoeUser();
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
-            bool logged = false;
-            agency.DoOnLogin(
-                JohnDoeUserName, JohnDoePassword,
-                (user) => logged = true,
-                () => logged = false);
-
-            logged.Should().BeTrue();
-        }
-
-        [Fact]
-        private void CannotLoginUnregisteredUser()
-        {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-
-            agency.Invoking(a => a.DoOnLogin<User>(
-                    JohnDoeUserName, JohnDoePassword,
-                    user => CreateJohnDoeUser(),
-                    () => throw new HumanResourcesAgencyException(HumanResourcesAgency.CannotLoginUserNotRegistered)))
-                .Should()
-                .Throw<HumanResourcesAgencyException>()
-                .WithMessage(HumanResourcesAgency.CannotLoginUserNotRegistered);
+            _candidateFolder.HasRegisteredUser(JohnDoeUserName).Should().BeTrue();
+            _candidateFolder.NumberOfUsers().Should().Be(1);
         }
 
         [Fact]
         private void KnowsApplicationOfEachCandidate()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
+            var agency = CreateHumanResourcesAgency();
+            agency.Register(JohnDoeUserName);
             agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
             agency.CandidateHasAppliedTo(JohnDoeUserName, Position, Company).Should().BeTrue();
             agency.NumberOfUserApplications(JohnDoeUserName).Should().Be(1);
@@ -111,7 +86,7 @@ namespace JobSeeker.Test
         [Fact]
         private void NoRegisteredUserCannotApplyToJobs()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
+            var agency = CreateHumanResourcesAgency();
 
             agency.Invoking(a => a.ApplyToJob(JohnDoeUserName, Position, Company, Description))
                 .Should()
@@ -125,9 +100,8 @@ namespace JobSeeker.Test
         [Fact]
         private void CandidateCanApplyToMoreThanOneJobInSameCompany()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
+            var agency = CreateHumanResourcesAgency();
+            agency.Register(JohnDoeUserName);
             agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
             agency.ApplyToJob(JohnDoeUserName, OtherPosition, Company, Description);
             agency.CandidateHasAppliedTo(JohnDoeUserName, Position, Company).Should().BeTrue();
@@ -138,9 +112,8 @@ namespace JobSeeker.Test
         [Fact]
         private void CandidateCanApplyToJobsInDifferentCompanies()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
+            var agency = CreateHumanResourcesAgency();
+            agency.Register(JohnDoeUserName);
             agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
             agency.ApplyToJob(JohnDoeUserName, Position, OtherCompany, Description);
             agency.CandidateHasAppliedTo(JohnDoeUserName, Position, Company).Should().BeTrue();
@@ -151,15 +124,14 @@ namespace JobSeeker.Test
         [Fact]
         private void CanGetCollectionOfRegisteredCandidatesApplications()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
+            var agency = CreateHumanResourcesAgency();
             Application first = CreateJavaAtAccentureApplication();
             Application second = CreateJavaAtGlobantApplication();
-            
-            agency.Register(JohnDoeUserName, JohnDoePassword,
-                JohnDoeEmail, JohnDoe);
+
+            agency.Register(JohnDoeUserName);
             agency.ApplyToJob(JohnDoeUserName, Position, Company, Description);
             agency.ApplyToJob(JohnDoeUserName, Position, OtherCompany, Description);
-            
+
             List<Application> applications = agency.ApplicationsOf(JohnDoeUserName);
             applications.Count.Should().Be(2);
             applications.Should().ContainInOrder(first, second);
@@ -168,7 +140,7 @@ namespace JobSeeker.Test
         [Fact]
         private void CannotGetApplicationsOfNotRegisteredCandidates()
         {
-            HumanResourcesAgency agency = new HumanResourcesAgency();
+            var agency = CreateHumanResourcesAgency();
             agency.Invoking(a => a.ApplicationsOf(JohnDoeUserName))
                 .Should()
                 .Throw<HumanResourcesAgencyException>()
