@@ -14,19 +14,20 @@ namespace JobSeeker.Domain
         public const string PositionCannotBeBlank = "Position cannot be blank";
         public const string CompanyCannotBeBlank = "Company cannot be blank";
         private readonly SortedDictionary<DateTime, List<string>> _commentsByDay;
-        private readonly DateTime _date;
-        private readonly string _description;
-
-        private readonly string _position;
 
         private Application(ApplicationBuilder builder)
         {
-            _position = builder.Position;
+            Position = builder.Position;
             Company = builder.Company;
-            _date = builder.Date;
-            _description = builder.Description;
+            Date = builder.Date;
+            Description = builder.Description;
             _commentsByDay = new SortedDictionary<DateTime, List<string>>();
         }
+
+        public DateTime Date { get; }
+        public string Description { get; }
+
+        public string Position { get; }
 
         public string Company { get; }
 
@@ -34,7 +35,7 @@ namespace JobSeeker.Domain
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return string.Equals(_position, other._position, StringComparison.InvariantCultureIgnoreCase) &&
+            return string.Equals(Position, other.Position, StringComparison.InvariantCultureIgnoreCase) &&
                    string.Equals(Company, other.Company, StringComparison.InvariantCultureIgnoreCase);
         }
 
@@ -48,7 +49,7 @@ namespace JobSeeker.Domain
             return _commentsByDay.Count != 0;
         }
 
-        public void AddComment(string content, DateTime date)
+        internal void AddComment(string content, DateTime date)
         {
             AssertCommentIsNotBeforeApplicationDate(date);
             AssertCommentIsNotBeforeTheLastOne(date);
@@ -75,7 +76,7 @@ namespace JobSeeker.Domain
 
         private void AssertCommentIsNotBeforeApplicationDate(in DateTime date)
         {
-            if (date.Subtract(_date).Days < 0)
+            if (date.Subtract(Date).Days < 0)
             {
                 throw new JobApplicationException(CanNotAddACommentBeforeApplication);
             }
@@ -95,7 +96,7 @@ namespace JobSeeker.Domain
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(_position, Company);
+            return HashCode.Combine(Position, Company);
         }
 
         public static bool operator ==(Application? left, Application? right)
@@ -110,7 +111,7 @@ namespace JobSeeker.Domain
 
         public bool HasPosition(string applicationPosition)
         {
-            return _position == applicationPosition;
+            return Position == applicationPosition;
         }
 
         public bool HasComment(string aComment)

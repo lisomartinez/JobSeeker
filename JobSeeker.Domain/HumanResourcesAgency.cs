@@ -4,7 +4,21 @@ using System.Linq;
 
 namespace JobSeeker.Domain
 {
-    public class HumanResourcesAgency
+    public interface IHumanResourcesAgency
+    {
+        void Register(string username, string password, string email, string name);
+        bool HasUsers();
+        bool HasRegisteredUser(string username);
+        int NumberOfUsers();
+        void DoOnLogin<T>(string username, string password, Func<User, T> onAuthenticaded, Func<T> onFailure);
+        User UserFrom(string username);
+        void ApplyToJob(string username, string position, string company, string description);
+        bool CandidateHasAppliedTo(string username, string position, string company);
+        int NumberOfUserApplications(string username);
+        List<Application> ApplicationsOf(string username);
+    }
+
+    public class HumanResourcesAgency : IHumanResourcesAgency
     {
         public const string NotRegisteredUserCannotOperate = "Not registered user cannot operate";
         public const string CannotLoginUserNotRegistered = "Cannot login not registered user";
@@ -19,14 +33,6 @@ namespace JobSeeker.Domain
             var user = User.Named(username, name, email);
             _users.Add(user, Candidate.With(user));
             _passwordsByUser.Add(username, password);
-        }
-
-        private void AsssertUserIsNotAlreadyRegistered(string username)
-        {
-            if (HasRegisteredUser(username))
-            {
-                throw new HumanResourcesAgencyException(CannotRegisterUserMoreThanOnce);
-            }
         }
 
         public bool HasUsers()
@@ -58,20 +64,9 @@ namespace JobSeeker.Domain
             }
         }
 
-        private User UserFrom(string username)
+        public User UserFrom(string username)
         {
             return FindUser(username).Key;
-        }
-
-        private KeyValuePair<User, Candidate> FindUser(string username)
-        {
-            return _users.First(usr => usr.Key.HasUserName(username));
-        }
-
-        private bool IsAuthenticated(string username, string password)
-        {
-            var foundUser = _passwordsByUser.TryGetValue(username, out var userPassword);
-            return foundUser && password == userPassword;
         }
 
         public void ApplyToJob(string username, string position, string company, string description)
@@ -79,19 +74,6 @@ namespace JobSeeker.Domain
             AssertUserIsRegistered(username);
             var candidate = CandidateFrom(username);
             candidate.ApplyToJob(position, company, description);
-        }
-
-        private void AssertUserIsRegistered(string username)
-        {
-            if (!HasRegisteredUser(username))
-            {
-                throw new HumanResourcesAgencyException(NotRegisteredUserCannotOperate);
-            }
-        }
-
-        private Candidate CandidateFrom(string username)
-        {
-            return FindUser(username).Value;
         }
 
         public bool CandidateHasAppliedTo(string username, string position, string company)
@@ -108,6 +90,38 @@ namespace JobSeeker.Domain
         {
             AssertUserIsRegistered(username);
             return CandidateFrom(username).Applications();
+        }
+
+        private void AsssertUserIsNotAlreadyRegistered(string username)
+        {
+            if (HasRegisteredUser(username))
+            {
+                throw new HumanResourcesAgencyException(CannotRegisterUserMoreThanOnce);
+            }
+        }
+
+        private KeyValuePair<User, Candidate> FindUser(string username)
+        {
+            return _users.First(usr => usr.Key.HasUserName(username));
+        }
+
+        private bool IsAuthenticated(string username, string password)
+        {
+            var foundUser = _passwordsByUser.TryGetValue(username, out var userPassword);
+            return foundUser && password == userPassword;
+        }
+
+        private void AssertUserIsRegistered(string username)
+        {
+            if (!HasRegisteredUser(username))
+            {
+                throw new HumanResourcesAgencyException(NotRegisteredUserCannotOperate);
+            }
+        }
+
+        private Candidate CandidateFrom(string username)
+        {
+            return FindUser(username).Value;
         }
     }
 }

@@ -2,20 +2,29 @@ namespace JobSeeker.Domain
 {
     public class User
     {
-        private readonly string _username;
-        private readonly string _name;
-        private readonly string _email;
-
-        private User(string username, string name, string email)
-        {
-            _username = username;
-            _name = name;
-            _email = email;
-        }
-
         public const string CandidateUsernameCannotBeBlank = "Candidate username cannot be blank";
         public const string CandidateNameCannotBeBlank = "Candidate name cannot be blank";
         public const string CandidateEmailCannotBeBlank = "Candidate email cannot be blank";
+
+        private User(string username, string name, string email)
+        {
+            Username = username;
+            Name = name;
+            Email = email;
+        }
+
+        public User(string username, string name, string email, string password)
+        {
+            Username = username;
+            Name = name;
+            Email = email;
+            Password = password;
+        }
+
+        public string Username { get; }
+        public string Name { get; }
+        public string Email { get; }
+        public string Password { get; } = "";
 
         public static User Named(string username, string name, string email)
         {
@@ -36,12 +45,12 @@ namespace JobSeeker.Domain
 
         public bool IsNamed(string aName)
         {
-            return _name == aName;
+            return Name == aName;
         }
 
         public bool HasUserName(string aUserName)
         {
-            return _username == aUserName;
+            return Username == aUserName;
         }
     }
 }
